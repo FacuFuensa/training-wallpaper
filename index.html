@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Training Wallpaper</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0d0d0d;
+      --card: #161616;
+      --border: rgba(255,255,255,0.06);
+      --text: #fff;
+      --dim: #555;
+      --accent: #ef6c40;
+      --done: #e5e5e5;
+      --future: rgba(255,255,255,0.12);
+    }
+
+    body {
+      font-family: -apple-system, 'Helvetica Neue', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 440px;
+      margin: 0 auto;
+      padding: 20px 16px 60px;
+    }
+
+    /* ─── SETUP ─── */
+    .setup {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .setup-card {
+      background: var(--card);
+      border-radius: 24px;
+      padding: 44px 28px;
+      max-width: 380px;
+      width: 100%;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+
+    .setup-card h1 {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 5px;
+      margin: 12px 0 6px;
+    }
+
+    .setup-card .sub { color: var(--dim); font-size: 13px; margin-bottom: 32px; }
+
+    .field { margin-bottom: 22px; text-align: left; }
+
+    .field label {
+      display: block;
+      color: var(--dim);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      margin-bottom: 6px;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 13px 14px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+    }
+
+    .field input:focus { border-color: rgba(255,255,255,0.15); }
+
+    .total-preview {
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      margin-bottom: 6px;
+    }
+
+    .error { color: #f87171; font-size: 12px; margin-bottom: 10px; }
+
+    .btn-primary {
+      width: 100%;
+      padding: 15px;
+      background: var(--done);
+      color: #000;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      cursor: pointer;
+      margin-top: 10px;
+      font-family: inherit;
+    }
+
+    .btn-primary:active { opacity: 0.8; }
+
+    /* ─── MAIN VIEW ─── */
+    .main { display: none; }
+    .main.active { display: block; }
+    .setup.hidden { display: none; }
+
+    .phone-frame {
+      width: 100%;
+      max-width: 360px;
+      aspect-ratio: 9/19.5;
+      border-radius: 44px;
+      border: 3px solid #2a2a2a;
+      overflow: hidden;
+      background: #1a1a1a;
+      margin: 0 auto 20px;
+      box-shadow: 0 8px 60px rgba(0,0,0,0.6);
+    }
+
+    .phone-inner {
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 0 12px;
+      scrollbar-width: none;
+    }
+
+    .phone-inner::-webkit-scrollbar { display: none; }
+
+    .fake-date {
+      text-align: center;
+      color: rgba(255,255,255,0.6);
+      font-size: 13px;
+      font-weight: 500;
+      margin-top: 54px;
+      margin-bottom: 2px;
+    }
+
+    .fake-time {
+      text-align: center;
+      color: rgba(255,255,255,0.55);
+      font-size: 64px;
+      font-weight: 700;
+      letter-spacing: -2px;
+      line-height: 1;
+      margin-bottom: 16px;
+    }
+
+    .goal-label {
+      text-align: center;
+      color: rgba(255,255,255,0.5);
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 10px;
+      letter-spacing: 0.5px;
+    }
+
+    .dot-grid {
+      display: flex;
+      flex-wrap: wrap;
+      margin: 0 auto;
+      padding: 4px 0 12px;
+    }
+
+    .dot {
+      border-radius: 50%;
+      cursor: pointer;
+      transition: background-color 0.15s ease;
+      flex-shrink: 0;
+    }
+
+    .dot.future { cursor: default; }
+
+    .footer-stats {
+      text-align: center;
+      font-size: 14px;
+      margin-top: 10px;
+      padding-bottom: 30px;
+    }
+
+    .footer-stats .left { color: var(--accent); font-weight: 600; }
+    .footer-stats .sep { color: rgba(255,255,255,0.25); margin: 0 6px; }
+    .footer-stats .pct { color: rgba(255,255,255,0.4); }
+
+    /* Stats row */
+    .stats-row {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .stat-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .stat-val { color: #ccc; font-size: 14px; font-weight: 600; }
+    .stat-lbl { color: var(--dim); font-size: 12px; }
+
+    /* Actions */
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 360px;
+      margin: 0 auto;
+    }
+
+    .btn-export {
+      width: 100%;
+      padding: 15px;
+      background: var(--done);
+      color: #000;
+      border: none;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .btn-row { display: flex; gap: 10px; }
+
+    .btn-sec {
+      flex: 1;
+      padding: 11px 14px;
+      background: var(--card);
+      color: #666;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .btn-sec.danger { color: var(--accent); }
+
+    .hint {
+      color: #333;
+      font-size: 11px;
+      text-align: center;
+      margin-top: 4px;
+    }
+
+    /* ─── SHORTCUT SECTION ─── */
+    .shortcut-section {
+      margin-top: 24px;
+      background: var(--card);
+      border-radius: 16px;
+      padding: 20px;
+      border: 1px solid var(--border);
+      max-width: 360px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .shortcut-section h3 {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    .shortcut-url {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      color: #888;
+      font-size: 11px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      word-break: break-all;
+      line-height: 1.5;
+      margin-bottom: 12px;
+      resize: none;
+      outline: none;
+      min-height: 80px;
+    }
+
+    .btn-copy {
+      width: 100%;
+      padding: 12px;
+      background: rgba(255,255,255,0.06);
+      color: #aaa;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .btn-copy:active { background: rgba(255,255,255,0.1); }
+
+    .shortcut-steps {
+      margin-top: 14px;
+      color: #666;
+      font-size: 12px;
+      line-height: 1.8;
+    }
+
+    .shortcut-steps strong { color: #999; }
+
+    /* ─── POPUP ─── */
+    .popup-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.9);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      padding: 20px;
+    }
+
+    .popup-overlay.hidden { display: none; }
+
+    .popup-card {
+      background: var(--card);
+      border-radius: 24px;
+      padding: 40px 24px 28px;
+      max-width: 320px;
+      width: 100%;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+
+    .popup-day {
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 4px;
+      margin-bottom: 16px;
+    }
+
+    .popup-q {
+      font-size: 20px;
+      font-weight: 600;
+      line-height: 1.4;
+      margin-bottom: 28px;
+    }
+
+    .popup-btns { display: flex; gap: 10px; }
+
+    .popup-btn {
+      flex: 1;
+      padding: 16px 12px;
+      border-radius: 14px;
+      border: none;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      font-family: inherit;
+    }
+
+    .popup-btn.yes { background: #14532d; color: #4ade80; }
+    .popup-btn.no { background: #7f1d1d; color: #f87171; }
+
+    .popup-skip {
+      margin-top: 14px;
+      background: none;
+      border: none;
+      color: #444;
+      font-size: 12px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- POPUP -->
+  <div class="popup-overlay hidden" id="popup">
+    <div class="popup-card">
+      <div class="popup-day" id="popupDayLabel">DAY 1 OF 90</div>
+      <h2 class="popup-q">Did you complete<br>everything today?</h2>
+      <div class="popup-btns">
+        <button class="popup-btn yes" onclick="answerPopup(true)">
+          <span style="font-size:32px">●</span>COMPLETED
+        </button>
+        <button class="popup-btn no" onclick="answerPopup(false)">
+          <span style="font-size:32px">●</span>MISSED
+        </button>
+      </div>
+      <button class="popup-skip" onclick="answerPopup(null)">Skip for now</button>
+    </div>
+  </div>
+
+  <!-- SETUP -->
+  <div class="setup" id="setupScreen">
+    <div class="setup-card">
+      <div style="font-size:36px">🎯</div>
+      <h1>GOAL TRACKER</h1>
+      <p class="sub">Configure your training countdown</p>
+
+      <div class="field">
+        <label>GOAL NAME</label>
+        <input id="inputGoal" value="Waco IronMan 70.3" placeholder="e.g. Marathon Prep">
+      </div>
+      <div class="field">
+        <label>START DATE</label>
+        <input id="inputStart" type="date">
+      </div>
+      <div class="field">
+        <label>RACE / GOAL DATE</label>
+        <input id="inputGoalDate" type="date">
+      </div>
+      <div class="total-preview" id="totalPreview"></div>
+      <div class="error" id="setupError"></div>
+      <button class="btn-primary" onclick="saveSetup()">START TRACKING →</button>
+    </div>
+  </div>
+
+  <!-- MAIN VIEW -->
+  <div class="main" id="mainView">
+    <div class="container">
+      <div class="phone-frame">
+        <div class="phone-inner">
+          <div class="fake-date" id="fakeDate"></div>
+          <div class="fake-time" id="fakeTime"></div>
+          <div class="goal-label" id="goalLabel"></div>
+          <div class="dot-grid" id="dotGrid"></div>
+          <div class="footer-stats">
+            <span class="left" id="footerLeft"></span>
+            <span class="sep">·</span>
+            <span class="pct" id="footerPct"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-item">
+          <div class="stat-dot" style="background:#e5e5e5"></div>
+          <span class="stat-val" id="statDone">0</span>
+          <span class="stat-lbl">done</span>
+        </div>
+        <div class="stat-item">
+          <div class="stat-dot" style="background:#ef6c40"></div>
+          <span class="stat-val" id="statMissed">0</span>
+          <span class="stat-lbl">missed</span>
+        </div>
+        <div class="stat-item">
+          <div class="stat-dot" style="background:rgba(255,255,255,0.12)"></div>
+          <span class="stat-val" id="statLeft">0</span>
+          <span class="stat-lbl">left</span>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn-export" onclick="exportWallpaper()">Download Wallpaper</button>
+        <div class="btn-row">
+          <button class="btn-sec" onclick="showSetup()">Settings</button>
+          <button class="btn-sec danger" onclick="resetData()">Reset</button>
+        </div>
+        <p class="hint">Tap dots to toggle · completed → missed → unmarked</p>
+      </div>
+
+      <!-- iOS SHORTCUT -->
+      <div class="shortcut-section">
+        <h3>📱 iOS SHORTCUT</h3>
+        <textarea class="shortcut-url" id="shortcutUrl" readonly></textarea>
+        <button class="btn-copy" onclick="copyUrl()">COPY URL</button>
+        <div class="shortcut-steps">
+          <strong>iOS Shortcuts setup:</strong><br>
+          1. Open Shortcuts → Automation → + → Time of Day<br>
+          2. Set to run daily at 1:00 AM<br>
+          3. Add action: <strong>Get Contents of URL</strong> → paste the URL above<br>
+          4. Add action: <strong>Set Wallpaper</strong> → set to "Contents of URL" for Lock Screen<br>
+          5. Done! Your wallpaper updates every night.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <canvas id="exportCanvas" style="display:none"></canvas>
+
+  <script>
+    // ─── STATE ───
+    const STORE_CONFIG = "tw-config";
+    const STORE_DAYS = "tw-days";
+    let config = null;
+    let days = {};
+
+    function load() {
+      try { config = JSON.parse(localStorage.getItem(STORE_CONFIG)); } catch {}
+      try { days = JSON.parse(localStorage.getItem(STORE_DAYS)) || {}; } catch {}
+    }
+
+    function save() {
+      localStorage.setItem(STORE_CONFIG, JSON.stringify(config));
+      localStorage.setItem(STORE_DAYS, JSON.stringify(days));
+    }
+
+    function dk(d) {
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    }
+
+    function addD(d, n) { const r = new Date(d); r.setDate(r.getDate()+n); return r; }
+
+    function diffD(a, b) {
+      return Math.round((new Date(b.getFullYear(),b.getMonth(),b.getDate()) -
+        new Date(a.getFullYear(),a.getMonth(),a.getDate())) / 86400000);
+    }
+
+    // ─── SETUP ───
+    function initSetup() {
+      const now = new Date();
+      document.getElementById("inputStart").value = config?.startDate || dk(now);
+      document.getElementById("inputGoalDate").value = config?.goalDate || dk(addD(now, 90));
+      document.getElementById("inputGoal").value = config?.goal || "Waco IronMan 70.3";
+      updatePreview();
+    }
+
+    function updatePreview() {
+      const s = document.getElementById("inputStart").value;
+      const g = document.getElementById("inputGoalDate").value;
+      if (s && g) {
+        const t = diffD(new Date(s+"T00:00:00"), new Date(g+"T00:00:00")) + 1;
+        document.getElementById("totalPreview").textContent = t > 0 ? `${t} DAYS` : "";
+      }
+    }
+
+    document.getElementById("inputStart")?.addEventListener("input", updatePreview);
+    document.getElementById("inputGoalDate")?.addEventListener("input", updatePreview);
+
+    function saveSetup() {
+      const goal = document.getElementById("inputGoal").value.trim();
+      const startDate = document.getElementById("inputStart").value;
+      const goalDate = document.getElementById("inputGoalDate").value;
+      const err = document.getElementById("setupError");
+
+      if (!goal) { err.textContent = "Enter a goal name"; return; }
+      if (!startDate || !goalDate) { err.textContent = "Fill in both dates"; return; }
+      if (new Date(goalDate) <= new Date(startDate)) { err.textContent = "Goal must be after start"; return; }
+
+      err.textContent = "";
+      config = { goal, startDate, goalDate };
+      save();
+      showMain();
+    }
+
+    function showSetup() {
+      document.getElementById("setupScreen").classList.remove("hidden");
+      document.getElementById("mainView").classList.remove("active");
+      initSetup();
+    }
+
+    function showMain() {
+      document.getElementById("setupScreen").classList.add("hidden");
+      document.getElementById("mainView").classList.add("active");
+      render();
+      checkPopup();
+    }
+
+    // ─── RENDER ───
+    function render() {
+      if (!config) return;
+
+      const now = new Date(); now.setHours(0,0,0,0);
+      const start = new Date(config.startDate + "T00:00:00");
+      const end = new Date(config.goalDate + "T00:00:00");
+      const total = diffD(start, end) + 1;
+      const passed = Math.max(0, Math.min(diffD(start, now) + 1, total));
+      const left = Math.max(0, total - passed);
+      const pct = total > 0 ? Math.round((passed / total) * 100) : 0;
+
+      // Fake lock screen
+      document.getElementById("fakeDate").textContent =
+        now.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+      const h = now.getHours();
+      const m = String(now.getMinutes()).padStart(2, "0");
+      document.getElementById("fakeTime").textContent = `${h}:${m}`;
+      document.getElementById("goalLabel").textContent = config.goal;
+
+      // Footer
+      document.getElementById("footerLeft").textContent = `${left}d left`;
+      document.getElementById("footerPct").textContent = `${pct}%`;
+
+      // Stats
+      const doneCount = Object.values(days).filter(v => v === true).length;
+      const missCount = Object.values(days).filter(v => v === false).length;
+      document.getElementById("statDone").textContent = doneCount;
+      document.getElementById("statMissed").textContent = missCount;
+      document.getElementById("statLeft").textContent = left;
+
+      // Dot grid
+      const cols = 18;
+      const grid = document.getElementById("dotGrid");
+      const frameW = grid.closest(".phone-inner").clientWidth - 24;
+      const dotR = Math.floor(Math.min(
+        (frameW - 20) / (cols * 2.4),
+        400 / (Math.ceil(total / cols) * 2.4)
+      ));
+      const spacing = dotR * 2.4;
+      const gap = spacing - dotR * 2;
+
+      grid.innerHTML = "";
+      grid.style.width = (cols * spacing) + "px";
+      grid.style.gap = gap + "px";
+
+      for (let i = 0; i < total; i++) {
+        const d = addD(start, i);
+        const key = dk(d);
+        const isToday = key === dk(now);
+        const isFuture = d > now;
+        const status = days[key];
+
+        const dot = document.createElement("div");
+        dot.className = "dot" + (isFuture ? " future" : "");
+        dot.style.width = (dotR * 2) + "px";
+        dot.style.height = (dotR * 2) + "px";
+
+        if (status === true) dot.style.backgroundColor = "#e5e5e5";
+        else if (status === false) dot.style.backgroundColor = "#ef6c40";
+        else if (isToday) dot.style.backgroundColor = "#e5e5e5";
+        else dot.style.backgroundColor = "rgba(255,255,255,0.12)";
+
+        if (!isFuture) {
+          dot.addEventListener("click", () => {
+            toggleDay(key);
+            render();
+          });
+        }
+
+        grid.appendChild(dot);
+      }
+
+      // Shortcut URL
+      updateShortcutUrl();
+    }
+
+    function toggleDay(key) {
+      if (days[key] === undefined) days[key] = true;
+      else if (days[key] === true) days[key] = false;
+      else delete days[key];
+      save();
+    }
+
+    // ─── SHORTCUT URL ───
+    function updateShortcutUrl() {
+      if (!config) return;
+
+      const base = window.location.origin + "/api/wallpaper";
+      const completedKeys = Object.entries(days).filter(([k,v]) => v === true).map(([k]) => k);
+      const missedKeys = Object.entries(days).filter(([k,v]) => v === false).map(([k]) => k);
+
+      const params = new URLSearchParams({
+        goal: config.goal,
+        start_date: config.startDate,
+        goal_date: config.goalDate,
+        width: "1179",
+        height: "2556",
+      });
+
+      if (completedKeys.length) params.set("completed", completedKeys.join(","));
+      if (missedKeys.length) params.set("missed", missedKeys.join(","));
+
+      document.getElementById("shortcutUrl").value = `${base}?${params.toString()}`;
+    }
+
+    function copyUrl() {
+      const el = document.getElementById("shortcutUrl");
+      el.select();
+      navigator.clipboard.writeText(el.value).then(() => {
+        const btn = document.querySelector(".btn-copy");
+        btn.textContent = "COPIED ✓";
+        setTimeout(() => { btn.textContent = "COPY URL"; }, 2000);
+      });
+    }
+
+    // ─── POPUP ───
+    function checkPopup() {
+      if (!config) return;
+      const tk = dk(new Date());
+      const s = new Date(config.startDate + "T00:00:00");
+      const g = new Date(config.goalDate + "T00:00:00");
+      const n = new Date(); n.setHours(0,0,0,0);
+
+      if (n >= s && n <= g && days[tk] === undefined) {
+        const total = diffD(s, g) + 1;
+        const dayNum = Math.max(1, Math.min(diffD(s, n) + 1, total));
+        document.getElementById("popupDayLabel").textContent = `DAY ${dayNum} OF ${total}`;
+        setTimeout(() => {
+          document.getElementById("popup").classList.remove("hidden");
+        }, 400);
+      }
+    }
+
+    function answerPopup(val) {
+      if (val !== null) {
+        days[dk(new Date())] = val;
+        save();
+      }
+      document.getElementById("popup").classList.add("hidden");
+      render();
+    }
+
+    // ─── EXPORT (client-side canvas for immediate download) ───
+    function exportWallpaper() {
+      const canvas = document.getElementById("exportCanvas");
+      const ctx = canvas.getContext("2d");
+      const W = 1179, H = 2556;
+      canvas.width = W; canvas.height = H;
+
+      const now = new Date(); now.setHours(0,0,0,0);
+      const start = new Date(config.startDate + "T00:00:00");
+      const end = new Date(config.goalDate + "T00:00:00");
+      const total = diffD(start, end) + 1;
+      const passed = Math.max(0, Math.min(diffD(start, now) + 1, total));
+      const left = Math.max(0, total - passed);
+      const pct = total > 0 ? Math.round((passed / total) * 100) : 0;
+      const cols = 18;
+
+      ctx.fillStyle = "#1a1a1a";
+      ctx.fillRect(0, 0, W, H);
+
+      const rows = Math.ceil(total / cols);
+      const dotR = Math.floor(Math.min((W - 120) / (cols * 2.4), (H - 900) / (rows * 2.4)));
+      const spacing = dotR * 2.4;
+      const gridW = (cols - 1) * spacing;
+      const gridH = (rows - 1) * spacing;
+      const sx = (W - gridW) / 2;
+      const sy = (H - gridH) / 2 + 60;
+
+      ctx.fillStyle = "rgba(255,255,255,0.5)";
+      ctx.font = `500 ${Math.min(42, Math.round(W * 0.036))}px -apple-system, 'Helvetica Neue', Arial, sans-serif`;
+      ctx.textAlign = "center";
+      ctx.fillText(config.goal, W / 2, sy - dotR * 2.5);
+
+      for (let i = 0; i < total; i++) {
+        const d = addD(start, i);
+        const key = dk(d);
+        const isToday = key === dk(now);
+        const isFuture = d > now;
+
+        const row = Math.floor(i / cols);
+        const col = i % cols;
+        const cx = sx + col * spacing;
+        const cy = sy + row * spacing;
+
+        ctx.beginPath();
+        ctx.arc(cx, cy, dotR, 0, Math.PI * 2);
+
+        if (days[key] === true) ctx.fillStyle = "#e5e5e5";
+        else if (days[key] === false) ctx.fillStyle = "#ef6c40";
+        else if (isToday) ctx.fillStyle = "#e5e5e5";
+        else ctx.fillStyle = "rgba(255,255,255,0.12)";
+
+        ctx.fill();
+      }
+
+      const fy = sy + gridH + dotR * 3.5;
+      ctx.font = "600 36px -apple-system, 'Helvetica Neue', Arial, sans-serif";
+      const ls = `${left}d left`, ps = `${pct}%`, sep = " · ";
+      const lw = ctx.measureText(ls).width, sw = ctx.measureText(sep).width, pw = ctx.measureText(ps).width;
+      const fx = W / 2 - (lw + sw + pw) / 2;
+      ctx.textAlign = "left";
+      ctx.fillStyle = "#ef6c40"; ctx.fillText(ls, fx, fy);
+      ctx.fillStyle = "rgba(255,255,255,0.25)"; ctx.fillText(sep, fx + lw, fy);
+      ctx.fillStyle = "rgba(255,255,255,0.4)"; ctx.fillText(ps, fx + lw + sw, fy);
+
+      canvas.toBlob(blob => {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `${config.goal.toLowerCase().replace(/\s+/g, "-")}-wallpaper.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }, "image/png");
+    }
+
+    // ─── RESET ───
+    function resetData() {
+      if (confirm("Reset all progress?")) {
+        days = {};
+        save();
+        render();
+      }
+    }
+
+    // ─── INIT ───
+    load();
+    initSetup();
+
+    if (config) {
+      showMain();
+    }
+  </script>
+</body>
+</html>
